@@ -13,9 +13,9 @@ import re
 import queue
 
 
-topic = "esp8266-"
-inTopic = topic + "in"
-outTopic = topic + "out"
+topic = "IoT"
+inTopic = topic + "-in"
+outTopic = topic + ""
 send_topic = ""
 name=""
 passw=""
@@ -76,6 +76,8 @@ def wait_for(nodes, msgtype, maxTime, retries=0, pubcmd=None):
                 client.publish(pubcmd[0], pubcmd[1])
                 startTime = time.time()
             else:
+                if not nodes:
+                    break
                 print("{} node(s) missed the message and no retires left".format(len(nodes) - len(seen.keys())))
         if nodes and len(seen.keys()) == len(nodes):
             break
