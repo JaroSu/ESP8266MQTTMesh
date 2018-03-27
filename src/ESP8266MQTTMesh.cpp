@@ -50,7 +50,7 @@ enum {
 
 //#define EMMDBG_LEVEL (EMMDBG_WIFI | EMMDBG_MQTT | EMMDBG_OTA)
 #ifndef EMMDBG_LEVEL
-  #define EMMDBG_LEVEL EMMDBG_ALL_EXTRA
+  #define EMMDBG_LEVEL EMMDBG_ALL
 #endif
 
 #define dbgPrintln(lvl, msg) if (((lvl) & (EMMDBG_LEVEL)) == (lvl)) Serial.println("[" + String(__FUNCTION__) + "] " + msg)
@@ -363,11 +363,11 @@ void ESP8266MQTTMesh::scan() {
         }
         if(network_idx == NETWORK_MESH_NODE) {
             if (WiFi.SSID(i).length()) {
-                dbgPrintln(EMMDBG_WIFI, "Did not match SSID list");
+                dbgPrintln(EMMDBG_WIFI_EXTRA, "Did not match SSID list");
                 continue;
             } else {
                 if (! verify_bssid(WiFi.BSSID(i))) {
-                    dbgPrintln(EMMDBG_WIFI, "Failed to match BSSID");
+                    dbgPrintln(EMMDBG_WIFI_EXTRA, "Failed to match BSSID");
                     continue;
                 }
             }
@@ -440,7 +440,7 @@ int ESP8266MQTTMesh::match_networks(const char *ssid, const char *bssid)
 }
 
 void ESP8266MQTTMesh::schedule_connect(float delay) {
-    dbgPrintln(EMMDBG_WIFI, "Scheduling reconnect for " + String(delay,2)+ " seconds from now");
+    dbgPrintln(EMMDBG_WIFI_EXTRA, "Scheduling reconnect for " + String(delay,2)+ " seconds from now");
     schedule.once(delay, connect, this);
 }
 
@@ -638,7 +638,7 @@ void ESP8266MQTTMesh::broadcast_message(const char *topicOrMsg, const char *msg)
 }
 
 void ESP8266MQTTMesh::handle_client_data(int idx, char *rawdata) {
-            dbgPrintln(EMMDBG_MQTT, "Received: msg from " + espClient[idx]->remoteIP().toString() + " on " + (idx == 0 ? "STA" : "AP"));
+            dbgPrintln(EMMDBG_MQTT_EXTRA, "Received: msg from " + espClient[idx]->remoteIP().toString() + " on " + (idx == 0 ? "STA" : "AP"));
             const char *data = rawdata + (idx ? 1 : 0);
             dbgPrintln(EMMDBG_MQTT_EXTRA, "--> '" + String(data) + "'");
             char topic[64];
@@ -815,7 +815,7 @@ void ESP8266MQTTMesh::handle_ota(const char *cmd, const char *msg) {
         char *end;
         unsigned int id = strtoul(cmd,&end, 16);
         if (id != firmware_id || *end != '/') {
-            dbgPrintln(EMMDBG_OTA, "Ignoring OTA because firmwareID did not match " + String(firmware_id, HEX));
+            dbgPrintln(EMMDBG_OTA_EXTRA, "Ignoring OTA because firmwareID did not match " + String(firmware_id, HEX));
             return;
         }
         cmd += (end - cmd) + 1; //skip ID
@@ -888,7 +888,7 @@ void ESP8266MQTTMesh::handle_ota(const char *cmd, const char *msg) {
         }
         dbgPrintln(EMMDBG_OTA_EXTRA, "Got " + String(len) + " bytes FW @ " + String(address, HEX));
         bool ok = ESP.flashWrite(freeSpaceStart + address, (uint32_t*) data, len);
-        dbgPrintln(EMMDBG_OTA, "Wrote " + String(len) + " bytes in " +  String((micros() - t) / 1000000.0, 6) + " seconds");
+        dbgPrintln(EMMDBG_OTA, "Wrote " + String(len) + " bytes @" + String(address, HEX) + " in " + String((micros() - t) / 1000000.0, 6) + " seconds");
         if (pingback) {
             char topic[17];
             strlcpy(topic, "ota/md5/", sizeof(topic));
